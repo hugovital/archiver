@@ -180,6 +180,7 @@ public class MainView {
             try {
                 Desktop.getDesktop().browse(new URI(url));
             } catch (Exception e) {
+                e.printStackTrace(); // Print stack trace to console
                 showErrorAlert("Error opening URL", 
                              "Could not open the URL in browser", 
                              e.getMessage());
@@ -187,7 +188,13 @@ public class MainView {
         }
     }
 
-    private void showErrorAlert(String title, String header, String content) {
+    public void showErrorAlert(String title, String header, String content) {
+        // Print to console first
+        System.err.println("Error occurred: " + title);
+        System.err.println("Header: " + header);
+        System.err.println("Content: " + content);
+        
+        // Show alert dialog
         Alert alert = new Alert(Alert.AlertType.ERROR);
         alert.setTitle(title);
         alert.setHeaderText(header);

@@ -55,7 +55,14 @@ public class MainController {
     }
 
     private void showAlert(String title, String header, String content) {
-        Alert alert = new Alert(Alert.AlertType.ERROR);  // Changed to ERROR type for file errors
+        // Print to console first
+        System.err.println("\nShowing alert:");
+        System.err.println("Title: " + title);
+        System.err.println("Header: " + header);
+        System.err.println("Content: " + content + "\n");
+        
+        // Show alert dialog
+        Alert alert = new Alert(Alert.AlertType.ERROR);
         alert.setTitle(title);
         alert.setHeaderText(header);
         alert.setContentText(content);
@@ -72,45 +79,57 @@ public class MainController {
     }
 
     public void handleItemSelection(String selectedText) {
-        // Parse the selected text to get potential file paths
-        String[] parts = selectedText.split("\\|");
-        StringBuilder result = new StringBuilder();
-        boolean foundAnyFile = false;
-        
-        for (String part : parts) {
-            String cleaned = part.trim()
-                               .replace("ID: ", "").trim()
-                               .replace("Name: ", "").trim()
-                               .replace("Position: ", "").trim()
-                               .replace("Location: ", "").trim()
-                               .replace("Salary: $", "").trim();
+        try {
+            // Parse the selected text to get potential file paths
+            String[] parts = selectedText.split("\\|");
+            StringBuilder result = new StringBuilder();
+            boolean foundAnyFile = false;
             
-            if (!cleaned.isEmpty()) {
-                try {
-                    Path filePath = Paths.get(cleaned);
-                    if (Files.exists(filePath) && Files.isRegularFile(filePath)) {
-                        String content = Files.readString(filePath);
-                        result.append("File: ").append(filePath).append("\n");
-                        result.append("Content:\n").append(content).append("\n\n");
-                        foundAnyFile = true;
+            for (String part : parts) {
+                String cleaned = part.trim();
+                
+                if (!cleaned.isEmpty()) {
+                    try {
+                        Path filePath = Paths.get(cleaned);
+                        if (Files.exists(filePath) && Files.isRegularFile(filePath)) {
+                            String content = Files.readString(filePath);
+                            result.append("File: ").append(filePath).append("\n");
+                            result.append("Content:\n").append(content).append("\n\n");
+                            foundAnyFile = true;
+                        }
+                    } catch (Exception e) {
+                        // Print stack trace to console
+                        System.err.println("Error processing file path: " + cleaned);
+                        e.printStackTrace();
+                        
+                        // Show alert for this specific file error
+                        showAlert("File Error", 
+                                "Error processing file: " + cleaned,
+                                e.getMessage());
+                        continue;
                     }
-                } catch (Exception e) {
-                    showAlert("File Error", 
-                             "Error processing file", 
-                             "An error occurred while processing the file: " + cleaned + 
-                             "\nError details: " + e.getMessage());
-                    continue;
                 }
             }
-        }
 
-        // If no files found, display the original selected text
-        if (!foundAnyFile) {
-            result.append("No files found. Original selection:\n").append(selectedText);
-        }
+            // If no files found, display the original selected text
+            if (!foundAnyFile) {
+                result.append("No files found. Original selection:\n").append(selectedText);
+            }
 
-        // Update the UI
-        view.setFoundItemsText(result.toString());
+            // Update the UI
+            view.setFoundItemsText(result.toString());
+            
+        } catch (Exception e) {
+            // Print stack trace to console
+            System.err.println("Error in handleItemSelection");
+            System.err.println("Selected text: " + selectedText);
+            e.printStackTrace();
+            
+            // Show alert for general error
+            showAlert("Error Processing Selection", 
+                     "An error occurred while processing the selected item",
+                     e.getMessage());
+        }
     }
 
     private List<Path> searchFiles(String fileName) {
