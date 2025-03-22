@@ -3,27 +3,20 @@ package com.example.views;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
-import javafx.scene.control.*;  // This includes TextArea
+import javafx.scene.control.*;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
-import javafx.scene.layout.Region;
+import javafx.scene.web.WebView;
 import com.example.controllers.MainController;
-import javafx.scene.text.TextFlow;
-import javafx.scene.text.Text;
-import javafx.scene.paint.Color;
-import javafx.scene.control.ScrollPane;
-import java.awt.Desktop;
-import java.net.URI;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import javafx.scene.control.Alert;
-import javafx.scene.control.ContextMenu;
-import javafx.scene.control.MenuItem;
-import javafx.scene.input.Clipboard;
-import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.MouseButton;
+import javafx.concurrent.Worker.State;
+import netscape.javascript.JSObject;
+import java.awt.Desktop;
+import java.net.URI;
 
 public class MainView {
     private final MainController controller;
@@ -37,7 +30,7 @@ public class MainView {
     private Label selectedLabel;
     private static final String NORMAL_STYLE = "-fx-padding: 5; -fx-background-color: #f0f0f0; -fx-background-radius: 5;";
     private static final String SELECTED_STYLE = "-fx-padding: 5; -fx-background-color: #0096ff; -fx-background-radius: 5; -fx-text-fill: white;";
-    private TextArea foundItemsArea;
+    private WebView foundItemsView;
     private static final Pattern URL_PATTERN = Pattern.compile(
         "\\b(https?://[-a-zA-Z0-9+&@#/%?=~_|!:,.;]*[-a-zA-Z0-9+&@#/%=~_|])");
 
@@ -71,44 +64,24 @@ public class MainView {
         VBox centerPanel = new VBox(10);
         centerPanel.setPadding(new Insets(10));
         
-        // Initialize TextArea
-        foundItemsArea = new TextArea();
-        foundItemsArea.setWrapText(true);
-        foundItemsArea.setEditable(false);
-        foundItemsArea.setPrefRowCount(10);
-        foundItemsArea.setPromptText("Found items will be displayed here");
-        VBox.setVgrow(foundItemsArea, Priority.ALWAYS);
-
-        // Create context menu
-        ContextMenu contextMenu = new ContextMenu();
-        MenuItem copyItem = new MenuItem("Copy");
-        copyItem.setOnAction(e -> foundItemsArea.copy());
-        MenuItem selectAllItem = new MenuItem("Select All");
-        selectAllItem.setOnAction(e -> foundItemsArea.selectAll());
-        contextMenu.getItems().addAll(copyItem, selectAllItem);
+        // Initialize WebView
+        foundItemsView = new WebView();
+        foundItemsView.setPrefHeight(200);
+        VBox.setVgrow(foundItemsView, Priority.ALWAYS);
         
-        foundItemsArea.setContextMenu(contextMenu);
-
-        // Add click handler for URLs
-        foundItemsArea.setOnMouseClicked(e -> {
-            if (e.getButton() == MouseButton.PRIMARY) {
-                String selectedText = foundItemsArea.getSelectedText();
-                if (selectedText == null || selectedText.isEmpty()) {
-                    String text = foundItemsArea.getText();
-                    int caretPosition = foundItemsArea.getCaretPosition();
-                    String url = findUrlAtPosition(text, caretPosition);
-                    if (url != null) {
-                        try {
-                            Desktop.getDesktop().browse(new URI(url));
-                        } catch (Exception ex) {
-                            showErrorAlert("Error opening URL", 
-                                         "Could not open the URL in browser", 
-                                         ex.getMessage());
-                        }
-                    }
-                }
+        // Enable context menu for copy/paste
+        foundItemsView.setContextMenuEnabled(true);
+        
+        // Add JavaScript bridge for handling links
+        foundItemsView.getEngine().getLoadWorker().stateProperty().addListener((obs, old, newState) -> {
+            if (newState == State.SUCCEEDED) {
+                JSObject window = (JSObject) foundItemsView.getEngine().executeScript("window");
+                window.setMember("javaApp", new JavaApp());
             }
         });
+
+        // Set initial content
+        setFoundItemsText("");
 
         lowerTextField = new TextField();
         lowerTextField.setPrefHeight(100);
@@ -119,7 +92,7 @@ public class MainView {
         addButtonBox.getChildren().add(addButton);
         addButtonBox.setPadding(new Insets(5, 0, 0, 0));
 
-        centerPanel.getChildren().addAll(foundItemsArea, lowerTextField, addButtonBox);
+        centerPanel.getChildren().addAll(foundItemsView, lowerTextField, addButtonBox);
         mainLayout.setCenter(centerPanel);
 
         // Set prompts
@@ -135,22 +108,83 @@ public class MainView {
         controller.setView(this);
     }
 
-    private String findUrlAtPosition(String text, int position) {
-        Matcher matcher = URL_PATTERN.matcher(text);
-        while (matcher.find()) {
-            if (position >= matcher.start() && position <= matcher.end()) {
-                return matcher.group();
-            }
-        }
-        return null;
-    }
-
     public void setFoundItemsText(String content) {
         if (content == null || content.trim().isEmpty()) {
-            foundItemsArea.clear();
+            String emptyHtml = createHtmlContent("Found items will be displayed here");
+            foundItemsView.getEngine().loadContent(emptyHtml);
             return;
         }
-        foundItemsArea.setText(content);
+
+        // Convert content to HTML with styled links
+        String htmlContent = createHtmlContent(content);
+        foundItemsView.getEngine().loadContent(htmlContent);
+    }
+
+    private String createHtmlContent(String content) {
+        StringBuilder html = new StringBuilder();
+        html.append("<!DOCTYPE html><html><head>");
+        html.append("<style>");
+        html.append("body { font-family: Arial, sans-serif; margin: 10px; }");
+        html.append("a { color: blue; text-decoration: underline; cursor: pointer; }");
+        html.append(".text-content { white-space: pre-wrap; }");
+        html.append("::selection { background: lightblue; }");
+        html.append("</style>");
+        html.append("</head><body><div class='text-content'>");
+
+        if (content != null) {
+            Matcher matcher = URL_PATTERN.matcher(content);
+            int lastEnd = 0;
+            
+            while (matcher.find()) {
+                // Add text before URL
+                html.append(escapeHtml(content.substring(lastEnd, matcher.start())));
+                
+                // Add URL as link
+                String url = matcher.group();
+                html.append("<a href='javascript:void(0)' onclick='javaApp.openUrl(\"")
+                    .append(escapeJavaScript(url))
+                    .append("\")')>")
+                    .append(escapeHtml(url))
+                    .append("</a>");
+                
+                lastEnd = matcher.end();
+            }
+            
+            // Add remaining text
+            if (lastEnd < content.length()) {
+                html.append(escapeHtml(content.substring(lastEnd)));
+            }
+        }
+
+        html.append("</div></body></html>");
+        return html.toString();
+    }
+
+    private String escapeHtml(String text) {
+        return text.replace("&", "&amp;")
+                  .replace("<", "&lt;")
+                  .replace(">", "&gt;")
+                  .replace("\"", "&quot;")
+                  .replace("\n", "<br>");
+    }
+
+    private String escapeJavaScript(String text) {
+        return text.replace("\\", "\\\\")
+                  .replace("\"", "\\\"")
+                  .replace("'", "\\'");
+    }
+
+    // JavaScript interface class
+    public class JavaApp {
+        public void openUrl(String url) {
+            try {
+                Desktop.getDesktop().browse(new URI(url));
+            } catch (Exception e) {
+                showErrorAlert("Error opening URL", 
+                             "Could not open the URL in browser", 
+                             e.getMessage());
+            }
+        }
     }
 
     private void showErrorAlert(String title, String header, String content) {
@@ -159,6 +193,10 @@ public class MainView {
         alert.setHeaderText(header);
         alert.setContentText(content);
         alert.showAndWait();
+    }
+
+    private void clearFoundItemsText() {
+        setFoundItemsText("");
     }
 
     public Scene getScene() {
@@ -204,13 +242,9 @@ public class MainView {
         }
     }
 
-    private void clearFoundItemsText() {
-        foundItemsArea.clear();
-    }
-
     public void cleanAllFields() {
         searchField.clear();
-        foundItemsArea.clear();
+        clearFoundItemsText();
         lowerTextField.clear();
         clearResults();
     }
