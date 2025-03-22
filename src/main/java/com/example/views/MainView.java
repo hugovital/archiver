@@ -21,12 +21,13 @@ import java.io.File;
 import java.util.Base64;
 import java.io.InputStream;
 import java.io.ByteArrayOutputStream;
+import javafx.scene.input.KeyCode;
 
 public class MainView {
     private final MainController controller;
     private Scene scene;
     private TextField searchField;
-    private TextField lowerTextField;
+    private TextArea lowerTextArea;
     private Button searchButton;
     private Button cleanButton;
     private Button addButton;
@@ -138,8 +139,11 @@ public class MainView {
         // Set initial content
         setFoundItemsText("");
 
-        lowerTextField = new TextField();
-        lowerTextField.setPrefHeight(100);
+        lowerTextArea = new TextArea();
+        lowerTextArea.setPrefHeight(100);
+        lowerTextArea.setWrapText(true);
+        lowerTextArea.setPromptText("Add your text here...");
+        lowerTextArea.setStyle("-fx-text-alignment: left; -fx-line-spacing: -0.4em; -fx-padding: 2;");
         
         addButton = new Button("ADD");
         HBox addButtonBox = new HBox();
@@ -147,12 +151,11 @@ public class MainView {
         addButtonBox.getChildren().add(addButton);
         addButtonBox.setPadding(new Insets(5, 0, 0, 0));
 
-        centerPanel.getChildren().addAll(foundItemsView, lowerTextField, addButtonBox);
+        centerPanel.getChildren().addAll(foundItemsView, lowerTextArea, addButtonBox);
         mainLayout.setCenter(centerPanel);
 
         // Set prompts
         searchField.setPromptText("Enter search term...");
-        lowerTextField.setPromptText("Lower text field");
 
         // Event handlers
         searchButton.setOnAction(e -> controller.handleSearch());
@@ -289,7 +292,7 @@ public class MainView {
     }
 
     public String getLowerText() {
-        return lowerTextField.getText();
+        return lowerTextArea.getText();
     }
 
     public void clearResults() {
@@ -326,7 +329,7 @@ public class MainView {
     public void cleanAllFields() {
         searchField.clear();
         clearFoundItemsText();
-        lowerTextField.clear();
+        lowerTextArea.clear();
         clearResults();
     }
 
