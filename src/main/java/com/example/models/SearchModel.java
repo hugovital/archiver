@@ -30,33 +30,16 @@ public class SearchModel {
             
             while ((line = reader.readLine()) != null) {
                 if (line.toLowerCase().contains(searchTerm.toLowerCase())) {
-                    // Format the line nicely - now handling any number of fields
+                    // Split the line by delimiter and format
                     String[] parts = line.split(DELIMITER);
                     StringBuilder formattedResult = new StringBuilder();
                     
-                    // Add each field with its label if available
+                    // Add each element with a separator
                     for (int i = 0; i < parts.length; i++) {
-                        String value = parts[i].trim();
-                        
-                        switch (i) {
-                            case 0:
-                                formattedResult.append("ID: ").append(value);
-                                break;
-                            case 1:
-                                formattedResult.append(" | Name: ").append(value);
-                                break;
-                            case 2:
-                                formattedResult.append(" | Position: ").append(value);
-                                break;
-                            case 3:
-                                formattedResult.append(" | Location: ").append(value);
-                                break;
-                            case 4:
-                                formattedResult.append(" | Salary: $").append(value);
-                                break;
-                            default:
-                                formattedResult.append(" | Field").append(i + 1).append(": ").append(value);
+                        if (i > 0) {
+                            formattedResult.append(" | ");
                         }
+                        formattedResult.append(parts[i].trim());
                     }
                     
                     results.add(formattedResult.toString());

@@ -15,3 +15,17 @@
 15;Nick Roberts;Full Stack Developer;Philadelphia;80000 
 16;Hugo Vital;Full Stack Developer;Philadelphia; C:\Users\Hugo\Desktop\android_memmory_things.txt
 17;Hugo Vital;C:\Users\Hugo\Desktop\android_memmory_things.txt;C:\Users\Hugo\Desktop\indicados.txt
+
+First element only
+Element 1;Element 2
+One;Two;Three;Four;Five
+Single long text with spaces
+Short;Text
+A;B;C;D;E;F;G;H;I;J
+Some text with http://www.example.com link
+Another;Text;With;http://github.com;Inside
+Just;Two;Elements
+Multiple;Elements;In;This;Row;With;Many;Values
+Single
+One;Two
+Text;With;Multiple;Elements;And;http://google.com;Link
