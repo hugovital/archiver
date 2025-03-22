@@ -80,7 +80,6 @@ public class MainController {
 
     public void handleItemSelection(String selectedText) {
         try {
-            // Parse the selected text to get potential file paths
             String[] parts = selectedText.split("\\|");
             StringBuilder result = new StringBuilder();
             boolean foundAnyFile = false;
@@ -91,11 +90,18 @@ public class MainController {
                 if (!cleaned.isEmpty()) {
                     try {
                         Path filePath = Paths.get(cleaned);
-                        if (Files.exists(filePath) && Files.isRegularFile(filePath)) {
+                        // Check if file exists AND ends with .txt
+                        if (Files.exists(filePath) && 
+                            Files.isRegularFile(filePath) && 
+                            filePath.toString().toLowerCase().endsWith(".txt")) {
+                            
                             String content = Files.readString(filePath);
                             result.append("File: ").append(filePath).append("\n");
                             result.append("Content:\n").append(content).append("\n\n");
                             foundAnyFile = true;
+                        } else if (Files.exists(filePath) && Files.isRegularFile(filePath)) {
+                            // File exists but is not a .txt file
+                            result.append("File found but not a text file: ").append(filePath).append("\n");
                         }
                     } catch (Exception e) {
                         // Print stack trace to console
@@ -113,7 +119,7 @@ public class MainController {
 
             // If no files found, display the original selected text
             if (!foundAnyFile) {
-                result.append("No files found. Original selection:\n").append(selectedText);
+                result.append("No text files found. Original selection:\n").append(selectedText);
             }
 
             // Update the UI
