@@ -24,6 +24,7 @@ import java.io.ByteArrayOutputStream;
 import javafx.scene.input.KeyCode;
 import javafx.stage.FileChooser;
 import javafx.scene.layout.Region;
+import javafx.scene.layout.ScrollPane;
 
 public class MainView {
     private final MainController controller;
@@ -92,6 +93,7 @@ public class MainView {
         
         // Top search bar
         HBox searchBar = new HBox(10);
+        Tooltip.install(searchBar, new Tooltip("searchBar (HBox)"));
         searchField = new TextField();
         searchField.setPrefWidth(300);
         searchButton = new Button("Search");
@@ -113,23 +115,33 @@ public class MainView {
         VBox leftPanel = new VBox(10);
         leftPanel.setPrefWidth(300);
         leftPanel.setStyle("-fx-border-color: black; -fx-border-width: 1;");
+        Tooltip.install(leftPanel, new Tooltip("leftPanel (VBox)"));
         
         resultsContainer = new VBox(5);
         resultsContainer.setPadding(new Insets(10));
+        Tooltip.install(resultsContainer, new Tooltip("resultsContainer (VBox)"));
         leftPanel.getChildren().add(resultsContainer);
-        mainLayout.setLeft(leftPanel);
+
+        // Wrap leftPanel in ScrollPane
+        ScrollPane leftScrollPane = new ScrollPane(leftPanel);
+        leftScrollPane.setFitToWidth(true);
+        leftScrollPane.setPrefViewportWidth(300);
+        leftScrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+        leftScrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
+        mainLayout.setLeft(leftScrollPane);
 
         // Center panel
         VBox centerPanel = new VBox(10);
         centerPanel.setPadding(new Insets(10));
+        Tooltip.install(centerPanel, new Tooltip("centerPanel (VBox)"));
         
-        // Initialize WebView
+        // Initialize WebView with ScrollPane
         foundItemsView = new WebView();
         foundItemsView.setPrefHeight(200);
-        VBox.setVgrow(foundItemsView, Priority.ALWAYS);
+        Tooltip.install(foundItemsView, new Tooltip("foundItemsView (WebView)"));
         
-        // Enable context menu for copy/paste
-        foundItemsView.setContextMenuEnabled(true);
+        // Enable JavaScript and add bridge
+        foundItemsView.getEngine().setJavaScriptEnabled(true);
         
         // Add JavaScript bridge for handling links
         foundItemsView.getEngine().getLoadWorker().stateProperty().addListener((obs, old, newState) -> {
@@ -139,8 +151,11 @@ public class MainView {
             }
         });
 
-        // Set initial content
-        setFoundItemsText("");
+        ScrollPane webViewScrollPane = new ScrollPane(foundItemsView);
+        webViewScrollPane.setFitToWidth(true);
+        webViewScrollPane.setFitToHeight(true);
+        webViewScrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
+        VBox.setVgrow(webViewScrollPane, Priority.ALWAYS);
 
         lowerTextArea = new TextArea();
         lowerTextArea.setPrefHeight(100);
@@ -158,8 +173,9 @@ public class MainView {
 
         buttonBox.getChildren().addAll(loadFileButton, spacer, addButton);
         buttonBox.setPadding(new Insets(5, 0, 0, 0));
+        Tooltip.install(buttonBox, new Tooltip("buttonBox (HBox)"));
 
-        centerPanel.getChildren().addAll(foundItemsView, lowerTextArea, buttonBox);
+        centerPanel.getChildren().addAll(webViewScrollPane, lowerTextArea, buttonBox);
         mainLayout.setCenter(centerPanel);
 
         // Set prompts
@@ -211,6 +227,9 @@ public class MainView {
 
         scene = new Scene(mainLayout);
         controller.setView(this);
+
+        // Add tooltip for the main layout
+        Tooltip.install(mainLayout, new Tooltip("mainLayout (BorderPane)"));
     }
 
     public void setFoundItemsText(String content) {
@@ -234,7 +253,7 @@ public class MainView {
         html.append("a[title] { text-decoration: none; }");
         html.append(".text-content { white-space: pre-wrap; }");
         html.append("::selection { background: lightblue; }");
-        html.append("img { display: inline-block; }");
+        html.append("img { display: inline-block; vertical-align: middle; cursor: pointer; }");
         html.append("[title] { position: relative; }");
         html.append("[title]:hover::after { ")
             .append("content: attr(title); ")
@@ -252,6 +271,11 @@ public class MainView {
             .append("margin-top: 5px; ")
             .append("}");
         html.append("</style>");
+        html.append("<script>")
+            .append("function openUrl(url) { javaApp.openUrl(url); }")
+            .append("function openFile(path) { javaApp.openFile(path); }")
+            .append("function openFolder(path) { javaApp.openFolder(path); }")
+            .append("</script>");
         html.append("</head><body><div class='text-content'>");
 
         html.append(content);
