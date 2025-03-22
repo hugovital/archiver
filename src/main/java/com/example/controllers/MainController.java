@@ -14,12 +14,15 @@ import java.nio.file.FileVisitResult;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class MainController {
     private SearchModel model;
     private MainView view;
     private static final int MAX_DEPTH = 4; // Maximum directory depth to search
     private static final int MAX_FILES = 10; // Maximum number of files to find
+    private static final Pattern URL_PATTERN = Pattern.compile("\\b(https?://\\S+)\\b");
 
     public MainController(SearchModel model) {
         this.model = model;
@@ -89,53 +92,108 @@ public class MainController {
                 
                 if (!cleaned.isEmpty()) {
                     try {
+                        // First check if it's a file
                         Path filePath = Paths.get(cleaned);
-                        // Check if file exists AND ends with .txt
-                        if (Files.exists(filePath) && 
-                            Files.isRegularFile(filePath) && 
-                            filePath.toString().toLowerCase().endsWith(".txt")) {
+                        if (Files.exists(filePath) && Files.isRegularFile(filePath)) {
+                            // File exists - format with green color, underline, and make clickable
+                            String fileName = filePath.toString();
+                            result.append("File: <a href='javascript:void(0)' ")
+                                  .append("onclick='javaApp.openFile(\"").append(escapeJavaScript(fileName)).append("\")' ")
+                                  .append("style='color: green; text-decoration: underline;'>")
+                                  .append(escapeHtml(fileName))
+                                  .append("</a>");
                             
-                            String content = Files.readString(filePath);
-                            result.append("File: ").append(filePath).append("\n");
-                            result.append("Content:\n").append(content).append("\n\n");
+                            // Add folder icon with tooltip
+                            result.append(" <a href='javascript:void(0)' ")
+                                  .append("onclick='javaApp.openFolder(\"").append(escapeJavaScript(filePath.getParent().toString())).append("\")' ")
+                                  .append("title='Click to open the file\\'s folder'>")
+                                  .append("📁")
+                                  .append("</a>");
+
+                            // If it's a txt file, append its content
+                            if (fileName.toLowerCase().endsWith(".txt")) {
+                                String content = Files.readString(filePath);
+                                result.append("\nContent:\n");
+                                // Process content for URLs before appending
+                                result.append(processTextForUrls(content));
+                            } else {
+                                result.append("\n(Not a text file)");
+                            }
+                            result.append("\n\n");
                             foundAnyFile = true;
-                        } else if (Files.exists(filePath) && Files.isRegularFile(filePath)) {
-                            // File exists but is not a .txt file
-                            result.append("File found but not a text file: ").append(filePath).append("\n");
+                        } else {
+                            // Not a file, check for URLs in the text
+                            result.append(processTextForUrls(cleaned)).append("\n");
                         }
                     } catch (Exception e) {
-                        // Print stack trace to console
-                        System.err.println("Error processing file path: " + cleaned);
-                        e.printStackTrace();
-                        
-                        // Show alert for this specific file error
-                        showAlert("File Error", 
-                                "Error processing file: " + cleaned,
-                                e.getMessage());
-                        continue;
+                        // If path is invalid, just process the text for URLs
+                        result.append(processTextForUrls(cleaned)).append("\n");
                     }
                 }
             }
 
-            // If no files found, display the original selected text
             if (!foundAnyFile) {
-                result.append("No text files found. Original selection:\n").append(selectedText);
+                result.append("No files found. Original selection:\n")
+                      .append(processTextForUrls(selectedText));
             }
 
-            // Update the UI
+            // Update the UI with HTML content
             view.setFoundItemsText(result.toString());
             
         } catch (Exception e) {
-            // Print stack trace to console
             System.err.println("Error in handleItemSelection");
             System.err.println("Selected text: " + selectedText);
             e.printStackTrace();
-            
-            // Show alert for general error
             showAlert("Error Processing Selection", 
                      "An error occurred while processing the selected item",
                      e.getMessage());
         }
+    }
+
+    private String processTextForUrls(String text) {
+        if (text == null || text.isEmpty()) {
+            return "";
+        }
+
+        StringBuilder result = new StringBuilder();
+        Matcher matcher = URL_PATTERN.matcher(text);
+        int lastEnd = 0;
+        
+        while (matcher.find()) {
+            // Add text before URL
+            result.append(escapeHtml(text.substring(lastEnd, matcher.start())));
+            
+            // Add URL as clickable link
+            String url = matcher.group();
+            result.append("<a href='javascript:void(0)' ")
+                  .append("onclick='javaApp.openUrl(\"").append(escapeJavaScript(url)).append("\")' ")
+                  .append("style='color: blue; text-decoration: underline;'>")
+                  .append(escapeHtml(url))
+                  .append("</a>");
+            
+            lastEnd = matcher.end();
+        }
+        
+        // Add remaining text
+        if (lastEnd < text.length()) {
+            result.append(escapeHtml(text.substring(lastEnd)));
+        }
+        
+        return result.toString();
+    }
+
+    private String escapeJavaScript(String text) {
+        return text.replace("\\", "\\\\")
+                   .replace("\"", "\\\"")
+                   .replace("'", "\\'");
+    }
+
+    private String escapeHtml(String text) {
+        return text.replace("&", "&amp;")
+                   .replace("<", "&lt;")
+                   .replace(">", "&gt;")
+                   .replace("\"", "&quot;")
+                   .replace("\n", "<br>");
     }
 
     private List<Path> searchFiles(String fileName) {

@@ -17,6 +17,7 @@ import javafx.concurrent.Worker.State;
 import netscape.javascript.JSObject;
 import java.awt.Desktop;
 import java.net.URI;
+import java.io.File;
 
 public class MainView {
     private final MainController controller;
@@ -125,36 +126,15 @@ public class MainView {
         html.append("<!DOCTYPE html><html><head>");
         html.append("<style>");
         html.append("body { font-family: Arial, sans-serif; margin: 10px; font-size: 13px; }");
-        html.append("a { color: blue; text-decoration: underline; cursor: pointer; }");
+        html.append("a { cursor: pointer; }");
+        html.append("a[title] { text-decoration: none; }"); // For folder icons
         html.append(".text-content { white-space: pre-wrap; }");
         html.append("::selection { background: lightblue; }");
         html.append("</style>");
         html.append("</head><body><div class='text-content'>");
 
-        if (content != null) {
-            Matcher matcher = URL_PATTERN.matcher(content);
-            int lastEnd = 0;
-            
-            while (matcher.find()) {
-                // Add text before URL
-                html.append(escapeHtml(content.substring(lastEnd, matcher.start())));
-                
-                // Add URL as link
-                String url = matcher.group();
-                html.append("<a href='javascript:void(0)' onclick='javaApp.openUrl(\"")
-                    .append(escapeJavaScript(url))
-                    .append("\")')>")
-                    .append(escapeHtml(url))
-                    .append("</a>");
-                
-                lastEnd = matcher.end();
-            }
-            
-            // Add remaining text
-            if (lastEnd < content.length()) {
-                html.append(escapeHtml(content.substring(lastEnd)));
-            }
-        }
+        // Content is already HTML-formatted from the controller
+        html.append(content);
 
         html.append("</div></body></html>");
         return html.toString();
@@ -180,9 +160,33 @@ public class MainView {
             try {
                 Desktop.getDesktop().browse(new URI(url));
             } catch (Exception e) {
-                e.printStackTrace(); // Print stack trace to console
+                e.printStackTrace();
                 showErrorAlert("Error opening URL", 
                              "Could not open the URL in browser", 
+                             e.getMessage());
+            }
+        }
+
+        public void openFile(String filePath) {
+            try {
+                File file = new File(filePath);
+                Desktop.getDesktop().open(file);
+            } catch (Exception e) {
+                e.printStackTrace();
+                showErrorAlert("Error opening file", 
+                             "Could not open the file", 
+                             e.getMessage());
+            }
+        }
+
+        public void openFolder(String folderPath) {
+            try {
+                File folder = new File(folderPath);
+                Desktop.getDesktop().open(folder);
+            } catch (Exception e) {
+                e.printStackTrace();
+                showErrorAlert("Error opening folder", 
+                             "Could not open the folder", 
                              e.getMessage());
             }
         }
