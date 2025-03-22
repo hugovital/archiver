@@ -18,6 +18,9 @@ import netscape.javascript.JSObject;
 import java.awt.Desktop;
 import java.net.URI;
 import java.io.File;
+import java.util.Base64;
+import java.io.InputStream;
+import java.io.ByteArrayOutputStream;
 
 public class MainView {
     private final MainController controller;
@@ -34,6 +37,49 @@ public class MainView {
     private WebView foundItemsView;
     private static final Pattern URL_PATTERN = Pattern.compile(
         "\\b(https?://[-a-zA-Z0-9+&@#/%?=~_|!:,.;]*[-a-zA-Z0-9+&@#/%=~_|])");
+    
+    // Default base64 encoded small folder icon (16x16 pixels)
+    private static final String DEFAULT_FOLDER_ICON = "iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABHNCSVQICAgIfAhkiAAAAAlwSFlzAAAAbwAAAG8B8aLcQwAAABl0RVh0U29mdHdhcmUAd3d3Lmlua3NjYXBlLm9yZ5vuPBoAAAB5SURBVDiNY2AYBYMPMBKrMCsr638GBgYGXl5eZiIMwKqZiYGBgaG5uZmBl5eXCZciFxcXBlwuYMKjGQYYcRqAR/N/UVFR7AYQoxkGWPBpxqUZwwBiNcMAM7KzSdWMYgCxmmEAb0Ai0TB4AKYBpGhGMYAUzSBQUVExAAYYc+4EGH/GAAAAAElFTkSuQmCC";
+    
+    private static final String FOLDER_ICON_BASE64;
+    
+    static {
+        String iconBase64;
+        try {
+            System.out.println("Attempting to load folder icon...");
+            InputStream is = MainView.class.getResourceAsStream("/images/folder-icon.png");
+            if (is != null) {
+                try {
+                    ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+                    int nRead;
+                    byte[] data = new byte[1024];
+                    while ((nRead = is.read(data, 0, data.length)) != -1) {
+                        buffer.write(data, 0, nRead);
+                    }
+                    buffer.flush();
+                    iconBase64 = Base64.getEncoder().encodeToString(buffer.toByteArray());
+                    is.close();
+                    System.out.println("Successfully loaded folder icon from resources");
+                } catch (Exception e) {
+                    System.err.println("Error reading folder icon file: " + e.getMessage());
+                    System.err.println("Stack trace:");
+                    e.printStackTrace();
+                    iconBase64 = DEFAULT_FOLDER_ICON;
+                }
+            } else {
+                System.err.println("Folder icon not found in resources at: /images/folder-icon.png");
+                System.err.println("Expected path: src/main/resources/images/folder-icon.png");
+                System.err.println("Using default folder icon instead");
+                iconBase64 = DEFAULT_FOLDER_ICON;
+            }
+        } catch (Exception e) {
+            System.err.println("Error loading folder icon: " + e.getMessage());
+            System.err.println("Stack trace:");
+            e.printStackTrace();
+            iconBase64 = DEFAULT_FOLDER_ICON;
+        }
+        FOLDER_ICON_BASE64 = iconBase64;
+    }
 
     public MainView(MainController controller) {
         this.controller = controller;
@@ -127,13 +173,13 @@ public class MainView {
         html.append("<style>");
         html.append("body { font-family: Arial, sans-serif; margin: 10px; font-size: 13px; }");
         html.append("a { cursor: pointer; }");
-        html.append("a[title] { text-decoration: none; }"); // For folder icons
+        html.append("a[title] { text-decoration: none; }");
         html.append(".text-content { white-space: pre-wrap; }");
         html.append("::selection { background: lightblue; }");
+        html.append("img { display: inline-block; }");
         html.append("</style>");
         html.append("</head><body><div class='text-content'>");
 
-        // Content is already HTML-formatted from the controller
         html.append(content);
 
         html.append("</div></body></html>");
@@ -258,5 +304,9 @@ public class MainView {
         clearFoundItemsText();
         lowerTextField.clear();
         clearResults();
+    }
+
+    public static String getFolderIconBase64() {
+        return FOLDER_ICON_BASE64;
     }
 } 

@@ -92,29 +92,30 @@ public class MainController {
                 
                 if (!cleaned.isEmpty()) {
                     try {
-                        // First check if it's a file
                         Path filePath = Paths.get(cleaned);
                         if (Files.exists(filePath) && Files.isRegularFile(filePath)) {
-                            // File exists - format with green color, underline, and make clickable
                             String fileName = filePath.toString();
+                            // File link
                             result.append("File: <a href='javascript:void(0)' ")
                                   .append("onclick='javaApp.openFile(\"").append(escapeJavaScript(fileName)).append("\")' ")
                                   .append("style='color: green; text-decoration: underline;'>")
                                   .append(escapeHtml(fileName))
-                                  .append("</a>");
-                            
-                            // Add folder icon with tooltip
-                            result.append(" <a href='javascript:void(0)' ")
+                                  .append("</a> "); // Added space before icon
+
+                            // Folder icon - using direct data URI
+                            result.append("<a href='javascript:void(0)' ")
                                   .append("onclick='javaApp.openFolder(\"").append(escapeJavaScript(filePath.getParent().toString())).append("\")' ")
+                                  .append("style='text-decoration: none; margin-left: 5px;' ")
                                   .append("title='Click to open the file\\'s folder'>")
-                                  .append("📁")
+                                  .append("<img src='data:image/png;base64,")
+                                  .append(MainView.getFolderIconBase64())
+                                  .append("' style='width: 16px; height: 16px; vertical-align: middle;' alt='folder'/>")
                                   .append("</a>");
 
                             // If it's a txt file, append its content
                             if (fileName.toLowerCase().endsWith(".txt")) {
                                 String content = Files.readString(filePath);
                                 result.append("\nContent:\n");
-                                // Process content for URLs before appending
                                 result.append(processTextForUrls(content));
                             } else {
                                 result.append("\n(Not a text file)");
