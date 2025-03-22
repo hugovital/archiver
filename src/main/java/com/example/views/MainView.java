@@ -124,7 +124,7 @@ public class MainView {
         StringBuilder html = new StringBuilder();
         html.append("<!DOCTYPE html><html><head>");
         html.append("<style>");
-        html.append("body { font-family: Arial, sans-serif; margin: 10px; }");
+        html.append("body { font-family: Arial, sans-serif; margin: 10px; font-size: 13px; }");
         html.append("a { color: blue; text-decoration: underline; cursor: pointer; }");
         html.append(".text-content { white-space: pre-wrap; }");
         html.append("::selection { background: lightblue; }");
