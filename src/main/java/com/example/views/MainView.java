@@ -22,6 +22,8 @@ import java.util.Base64;
 import java.io.InputStream;
 import java.io.ByteArrayOutputStream;
 import javafx.scene.input.KeyCode;
+import javafx.stage.FileChooser;
+import javafx.scene.layout.Region;
 
 public class MainView {
     private final MainController controller;
@@ -31,6 +33,7 @@ public class MainView {
     private Button searchButton;
     private Button cleanButton;
     private Button addButton;
+    private Button loadFileButton;
     private VBox resultsContainer;
     private Label selectedLabel;
     private static final String NORMAL_STYLE = "-fx-padding: 5; -fx-background-color: #f0f0f0; -fx-background-radius: 5;";
@@ -146,12 +149,17 @@ public class MainView {
         lowerTextArea.setStyle("-fx-text-alignment: left; -fx-line-spacing: -0.4em; -fx-padding: 2;");
         
         addButton = new Button("ADD");
-        HBox addButtonBox = new HBox();
-        addButtonBox.setAlignment(Pos.CENTER_RIGHT);
-        addButtonBox.getChildren().add(addButton);
-        addButtonBox.setPadding(new Insets(5, 0, 0, 0));
+        loadFileButton = new Button("Load File");
+        HBox buttonBox = new HBox();
+        buttonBox.setAlignment(Pos.CENTER);
 
-        centerPanel.getChildren().addAll(foundItemsView, lowerTextArea, addButtonBox);
+        Region spacer = new Region();
+        HBox.setHgrow(spacer, Priority.ALWAYS);
+
+        buttonBox.getChildren().addAll(loadFileButton, spacer, addButton);
+        buttonBox.setPadding(new Insets(5, 0, 0, 0));
+
+        centerPanel.getChildren().addAll(foundItemsView, lowerTextArea, buttonBox);
         mainLayout.setCenter(centerPanel);
 
         // Set prompts
@@ -161,6 +169,34 @@ public class MainView {
         searchButton.setOnAction(e -> controller.handleSearch());
         cleanButton.setOnAction(e -> controller.handleClean());
         addButton.setOnAction(e -> controller.handleAdd());
+        loadFileButton.setOnAction(e -> {
+            FileChooser fileChooser = new FileChooser();
+            fileChooser.setTitle("Select File");
+            File selectedFile = fileChooser.showOpenDialog(scene.getWindow());
+            
+            if (selectedFile != null) {
+                // Get current text and cursor position
+                String currentText = lowerTextArea.getText();
+                int caretPosition = lowerTextArea.getCaretPosition();
+                
+                // Insert file path at current position
+                String filePath = selectedFile.getAbsolutePath();
+                String newText;
+                
+                // If we're not at the start of a line, add a newline first
+                if (caretPosition > 0 && !currentText.substring(caretPosition - 1, caretPosition).equals("\n")) {
+                    newText = currentText.substring(0, caretPosition) + "\n" + filePath + 
+                             currentText.substring(caretPosition);
+                } else {
+                    newText = currentText.substring(0, caretPosition) + filePath + 
+                             currentText.substring(caretPosition);
+                }
+                
+                lowerTextArea.setText(newText);
+                // Position cursor after the inserted file path
+                lowerTextArea.positionCaret(caretPosition + filePath.length() + 1);
+            }
+        });
 
         scene = new Scene(mainLayout);
         controller.setView(this);
