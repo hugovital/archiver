@@ -92,6 +92,14 @@ public class MainView {
         searchField.setPrefWidth(300);
         searchButton = new Button("Search");
         cleanButton = new Button("Clean");
+        
+        // Add Enter key handler to search field
+        searchField.setOnKeyPressed(event -> {
+            if (event.getCode() == javafx.scene.input.KeyCode.ENTER) {
+                searchButton.fire(); // This triggers the search button's action
+            }
+        });
+        
         searchBar.getChildren().addAll(searchField, searchButton, cleanButton);
         searchBar.setPadding(new Insets(10));
         searchBar.setAlignment(Pos.CENTER_LEFT);

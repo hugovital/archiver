@@ -1,9 +1,74 @@
-"target/" 
-"*.class" 
-".settings/" 
-".classpath" 
-".project" 
-".idea/" 
-"*.iml" 
-"*.jar" 
-"*.class" 
+# Maven
+target/
+**/target/
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+dependency-reduced-pom.xml
+
+# Eclipse
+.settings/
+**/.settings/
+.project
+**/.project
+.classpath
+**/.classpath
+.factorypath
+**/.factorypath
+.metadata/
+bin/
+**/bin/
+
+# IntelliJ IDEA
+.idea/
+**/.idea/
+*.iml
+**/*.iml
+*.iws
+**/*.iws
+*.ipr
+**/*.ipr
+
+# NetBeans
+nbproject/
+**/nbproject/
+nbbuild/
+**/nbbuild/
+dist/
+**/dist/
+nbdist/
+**/nbdist/
+.nb-gradle/
+**/.nb-gradle/
+
+# VS Code
+.vscode/
+**/.vscode/
+
+# Compiled files
+*.class
+**/*.class
+*.jar
+**/*.jar
+*.war
+**/*.war
+
+# Logs
+*.log
+**/*.log
+logs/
+**/logs/
+
+# OS specific
+.DS_Store
+**/.DS_Store
+Thumbs.db
+**/Thumbs.db
+
+# Debug files
+*.debug
+**/*.debug
+*.swp
+**/*.swp
