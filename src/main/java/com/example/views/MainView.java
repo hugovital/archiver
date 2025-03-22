@@ -177,6 +177,22 @@ public class MainView {
         html.append(".text-content { white-space: pre-wrap; }");
         html.append("::selection { background: lightblue; }");
         html.append("img { display: inline-block; }");
+        html.append("[title] { position: relative; }");
+        html.append("[title]:hover::after { ")
+            .append("content: attr(title); ")
+            .append("position: absolute; ")
+            .append("top: 100%; ")
+            .append("left: 50%; ")
+            .append("transform: translateX(-50%); ")
+            .append("background: #333; ")
+            .append("color: white; ")
+            .append("padding: 4px 8px; ")
+            .append("border-radius: 4px; ")
+            .append("font-size: 12px; ")
+            .append("white-space: nowrap; ")
+            .append("z-index: 1000; ")
+            .append("margin-top: 5px; ")
+            .append("}");
         html.append("</style>");
         html.append("</head><body><div class='text-content'>");
 

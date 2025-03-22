@@ -24,6 +24,11 @@ public class MainController {
     private static final int MAX_FILES = 10; // Maximum number of files to find
     private static final Pattern URL_PATTERN = Pattern.compile("\\b(https?://\\S+)\\b");
 
+    // Add constants for tooltips to avoid string concatenation
+    private static final String TOOLTIP_FILE = "Abrir o arquivo";
+    private static final String TOOLTIP_FOLDER = "Abrir a pasta do arquivo";
+    private static final String TOOLTIP_URL = "Abrir o link no navegador";
+
     public MainController(SearchModel model) {
         this.model = model;
     }
@@ -95,21 +100,22 @@ public class MainController {
                         Path filePath = Paths.get(cleaned);
                         if (Files.exists(filePath) && Files.isRegularFile(filePath)) {
                             String fileName = filePath.toString();
-                            // File link
+                            // File link with tooltip - optimized string concatenation
                             result.append("File: <a href='javascript:void(0)' ")
                                   .append("onclick='javaApp.openFile(\"").append(escapeJavaScript(fileName)).append("\")' ")
-                                  .append("style='color: green; text-decoration: underline;'>")
+                                  .append("style='color: green; text-decoration: underline;' ")
+                                  .append("title='").append(TOOLTIP_FILE).append("'>")
                                   .append(escapeHtml(fileName))
-                                  .append("</a> "); // Added space before icon
+                                  .append("</a> ");
 
-                            // Folder icon - using direct data URI
+                            // Folder icon with tooltip - optimized
                             result.append("<a href='javascript:void(0)' ")
                                   .append("onclick='javaApp.openFolder(\"").append(escapeJavaScript(filePath.getParent().toString())).append("\")' ")
                                   .append("style='text-decoration: none; margin-left: 5px;' ")
-                                  .append("title='Click to open the file\\'s folder'>")
+                                  .append("title='").append(TOOLTIP_FOLDER).append("'>")
                                   .append("<img src='data:image/png;base64,")
                                   .append(MainView.getFolderIconBase64())
-                                  .append("' style='width: 16px; height: 16px; vertical-align: middle;' alt='folder'/>")
+                                  .append("' style='width: 16px; height: 16px; vertical-align: middle;' alt='pasta'/>")
                                   .append("</a>");
 
                             // If it's a txt file, append its content
@@ -138,7 +144,6 @@ public class MainController {
                       .append(processTextForUrls(selectedText));
             }
 
-            // Update the UI with HTML content
             view.setFoundItemsText(result.toString());
             
         } catch (Exception e) {
@@ -164,11 +169,12 @@ public class MainController {
             // Add text before URL
             result.append(escapeHtml(text.substring(lastEnd, matcher.start())));
             
-            // Add URL as clickable link
+            // Add URL as clickable link with tooltip - optimized
             String url = matcher.group();
             result.append("<a href='javascript:void(0)' ")
                   .append("onclick='javaApp.openUrl(\"").append(escapeJavaScript(url)).append("\")' ")
-                  .append("style='color: blue; text-decoration: underline;'>")
+                  .append("style='color: blue; text-decoration: underline;' ")
+                  .append("title='").append(TOOLTIP_URL).append("'>")
                   .append(escapeHtml(url))
                   .append("</a>");
             
