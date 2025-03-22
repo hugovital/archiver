@@ -172,6 +172,17 @@ public class MainView {
         loadFileButton.setOnAction(e -> {
             FileChooser fileChooser = new FileChooser();
             fileChooser.setTitle("Select File");
+            
+            // Set initial directory to user's Downloads folder
+            String userHome = System.getProperty("user.home");
+            File downloadsFolder = new File(userHome + "/Downloads");
+            
+            // If Downloads folder doesn't exist, fall back to user home
+            if (!downloadsFolder.exists()) {
+                downloadsFolder = new File(userHome);
+            }
+            
+            fileChooser.setInitialDirectory(downloadsFolder);
             File selectedFile = fileChooser.showOpenDialog(scene.getWindow());
             
             if (selectedFile != null) {
