@@ -145,26 +145,79 @@ public class SearchModel {
         }
     }
 
-    public void addNewContent(String content) {
+    public void addNewContent(String content, javafx.stage.Window parentWindow) {
         try {
             // First create backup
             backupRecordsFile(content);
 
-            // Format the content - split by newlines and join with semicolons
-            String formattedContent = formatContentForFile(content);
+            // Save content to new file and get the filename
+            String savedFilePath = saveTheContent(content, parentWindow);
+            if (savedFilePath != null) {
+                // Format the content with the new file path
+                String contentWithFile = content.trim() + System.lineSeparator() + savedFilePath;
+                String formattedContent = formatContentForFile(contentWithFile);
 
-            // Append the formatted content to the original file
-            File sourceFile = new File(getRecordsFilePath());
-            java.nio.file.Files.write(
-                sourceFile.toPath(),
-                (System.lineSeparator() + formattedContent).getBytes(StandardCharsets.UTF_8),
-                java.nio.file.StandardOpenOption.APPEND
-            );
+                // Append the formatted content to the original file
+                File sourceFile = new File(getRecordsFilePath());
+                java.nio.file.Files.write(
+                    sourceFile.toPath(),
+                    (System.lineSeparator() + formattedContent).getBytes(StandardCharsets.UTF_8),
+                    java.nio.file.StandardOpenOption.APPEND
+                );
+            }
         } catch (Exception e) {
             System.err.println("Error adding new content: " + e.getMessage());
             e.printStackTrace();
             throw new RuntimeException("Failed to add new content: " + e.getMessage());
         }
+    }
+
+    private String saveTheContent(String content, javafx.stage.Window parentWindow) {
+        javafx.stage.FileChooser fileChooser = new javafx.stage.FileChooser();
+        fileChooser.setTitle("Save Content As");
+        
+        // Set initial directory to user's Documents folder
+        String userHome = System.getProperty("user.home");
+        File documentsFolder = new File(userHome + File.separator + "Documents");
+        if (!documentsFolder.exists()) {
+            documentsFolder = new File(userHome);
+        }
+        fileChooser.setInitialDirectory(documentsFolder);
+        
+        // Set file extension filter
+        javafx.stage.FileChooser.ExtensionFilter extFilter = 
+            new javafx.stage.FileChooser.ExtensionFilter("Text files (*.txt)", "*.txt");
+        fileChooser.getExtensionFilters().add(extFilter);
+        
+        // Show save dialog
+        File file = fileChooser.showSaveDialog(parentWindow);
+        
+        if (file != null) {
+            try {
+                // Ensure the file has .txt extension
+                String filePath = file.getPath();
+                if (!filePath.toLowerCase().endsWith(".txt")) {
+                    filePath += ".txt";
+                    file = new File(filePath);
+                }
+                
+                // Write the original content to the file
+                java.nio.file.Files.write(
+                    file.toPath(),
+                    content.getBytes(StandardCharsets.UTF_8),
+                    java.nio.file.StandardOpenOption.CREATE,
+                    java.nio.file.StandardOpenOption.TRUNCATE_EXISTING
+                );
+                
+                return file.getAbsolutePath();
+            } catch (Exception e) {
+                System.err.println("Error saving content to file: " + e.getMessage());
+                e.printStackTrace();
+                throw new RuntimeException("Failed to save content to file: " + e.getMessage());
+            }
+        }
+        
+        return null;
     }
 
     private String formatContentForFile(String content) {

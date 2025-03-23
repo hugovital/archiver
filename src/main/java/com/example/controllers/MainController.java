@@ -76,8 +76,10 @@ public class MainController {
         }
         
         try {
-            model.addNewContent(content);
-            // Clear the text area after successful backup
+            // Get the window from the view
+            javafx.stage.Window window = view.getScene().getWindow();
+            model.addNewContent(content, window);
+            // Clear the text area after successful addition
             view.cleanAllFields();
             
             // Show success dialog
