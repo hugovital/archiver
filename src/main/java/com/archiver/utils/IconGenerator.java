@@ -1,4 +1,4 @@
-package com.example.utils;
+package com.archiver.utils;
 
 import java.util.Base64;
 import java.io.FileOutputStream;

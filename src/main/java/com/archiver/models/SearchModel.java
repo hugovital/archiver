@@ -1,4 +1,4 @@
-package com.example.models;
+package com.archiver.models;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -364,5 +364,27 @@ public class SearchModel {
         }
         
         return formatted.toString();
+    }
+
+    // Add this method to detect the operating system
+    private static boolean isWindows() {
+        String os = System.getProperty("os.name").toLowerCase();
+        return os.contains("win");
+    }
+
+    private static boolean isMac() {
+        String os = System.getProperty("os.name").toLowerCase();
+        return os.contains("mac");
+    }
+
+    // Helper method to get OS name for any other checks needed
+    public static String getOperatingSystem() {
+        if (isWindows()) {
+            return "windows";
+        } else if (isMac()) {
+            return "mac";
+        } else {
+            return "linux"; // Default to linux for other Unix-like systems
+        }
     }
 } 

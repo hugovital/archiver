@@ -1,7 +1,8 @@
-package com.example.controllers;
+package com.archiver.controllers;
 
-import com.example.models.SearchModel;
-import com.example.views.MainView;
+import com.archiver.models.SearchModel;
+import com.archiver.views.MainView;
+
 import javafx.scene.control.Alert;
 import java.util.List;
 import java.nio.file.Files;

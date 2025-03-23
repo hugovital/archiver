@@ -1,26 +1,33 @@
-package com.example.views;
+package com.archiver.views;
 
+import java.awt.Desktop;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.InputStream;
+import java.net.URI;
+import java.util.Base64;
+
+import com.archiver.controllers.MainController;
+
+import javafx.concurrent.Worker.State;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
-import javafx.scene.control.*;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.control.ScrollPane;
+import javafx.scene.control.TextArea;
+import javafx.scene.control.TextField;
+import javafx.scene.control.Tooltip;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
+import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.scene.web.WebView;
-import com.example.controllers.MainController;
-import java.util.regex.Pattern;
-import javafx.concurrent.Worker.State;
-import netscape.javascript.JSObject;
-import java.awt.Desktop;
-import java.net.URI;
-import java.io.File;
-import java.util.Base64;
-import java.io.InputStream;
-import java.io.ByteArrayOutputStream;
 import javafx.stage.FileChooser;
-import javafx.scene.layout.Region;
+import netscape.javascript.JSObject;
 
 public class MainView {
     private final MainController controller;

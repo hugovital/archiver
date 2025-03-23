@@ -1,11 +1,11 @@
-package com.example;
+package com.archiver;
+
+import com.archiver.controllers.MainController;
+import com.archiver.models.SearchModel;
+import com.archiver.views.MainView;
 
 import javafx.application.Application;
 import javafx.stage.Stage;
-import com.example.views.MainView;
-import com.example.controllers.MainController;
-import com.example.models.SearchModel;
-import javafx.scene.Scene;
 
 public class App extends Application {
 
@@ -27,7 +27,8 @@ public class App extends Application {
         }
     }
 
-    public static void main(String[] args) {
+    public static void main(String[] args) {    	
+    	System.out.println( "Running in: "  + SearchModel.getOperatingSystem() );    	
         launch(args);
     }
 } 
