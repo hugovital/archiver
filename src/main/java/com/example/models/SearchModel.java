@@ -145,26 +145,85 @@ public class SearchModel {
         }
     }
 
-    public void addNewContent(String content, javafx.stage.Window parentWindow) {
+    public boolean addNewContent(String content, javafx.stage.Window parentWindow) {
         try {
             // First create backup
             backupRecordsFile(content);
 
-            // Save content to new file and get the filename
+            // Get destination for new file first
             String savedFilePath = saveTheContent(content, parentWindow);
             if (savedFilePath != null) {
-                // Format the content with the new file path
-                String contentWithFile = content.trim() + System.lineSeparator() + savedFilePath;
-                String formattedContent = formatContentForFile(contentWithFile);
-
-                // Append the formatted content to the original file
+                File destinationFile = new File(savedFilePath);
+                File destinationFolder = destinationFile.getParentFile();
+                
+                // Process content lines and copy files
+                String[] lines = content.split("\\R");
+                StringBuilder processedContent = new StringBuilder();
+                
+                for (String line : lines) {
+                    String trimmedLine = line.trim();
+                    if (!trimmedLine.isEmpty()) {
+                        try {
+                            File potentialFile = new File(trimmedLine);
+                            if (potentialFile.exists() && potentialFile.isFile()) {
+                                // Copy file to destination folder
+                                String newFileName = potentialFile.getName();
+                                File copiedFile = new File(destinationFolder, newFileName);
+                                
+                                // Handle file name conflicts
+                                int counter = 1;
+                                while (copiedFile.exists()) {
+                                    String nameWithoutExt = newFileName.substring(0, newFileName.lastIndexOf('.'));
+                                    String extension = newFileName.substring(newFileName.lastIndexOf('.'));
+                                    copiedFile = new File(destinationFolder, nameWithoutExt + "_" + counter + extension);
+                                    counter++;
+                                }
+                                
+                                // Copy the file
+                                java.nio.file.Files.copy(
+                                    potentialFile.toPath(),
+                                    copiedFile.toPath(),
+                                    java.nio.file.StandardCopyOption.COPY_ATTRIBUTES
+                                );
+                                
+                                // Add the new file path to content
+                                processedContent.append(copiedFile.getAbsolutePath()).append(System.lineSeparator());
+                            } else {
+                                // Not a file, keep original line
+                                processedContent.append(trimmedLine).append(System.lineSeparator());
+                            }
+                        } catch (Exception e) {
+                            // If there's any error processing the line, keep original
+                            processedContent.append(trimmedLine).append(System.lineSeparator());
+                        }
+                    }
+                }
+                
+                // Add the new file path to the processed content
+                processedContent.append(savedFilePath);
+                
+                // Write the processed content to the new file
+                java.nio.file.Files.write(
+                    destinationFile.toPath(),
+                    processedContent.toString().getBytes(StandardCharsets.UTF_8),
+                    java.nio.file.StandardOpenOption.CREATE,
+                    java.nio.file.StandardOpenOption.TRUNCATE_EXISTING
+                );
+                
+                // Format and append to the records file
+                String formattedContent = formatContentForFile(processedContent.toString());
                 File sourceFile = new File(getRecordsFilePath());
                 java.nio.file.Files.write(
                     sourceFile.toPath(),
                     (System.lineSeparator() + formattedContent).getBytes(StandardCharsets.UTF_8),
                     java.nio.file.StandardOpenOption.APPEND
                 );
+                
+                return true; // Return true if save was successful
             }
+            
+            return false; // Return false if user cancelled
+            
         } catch (Exception e) {
             System.err.println("Error adding new content: " + e.getMessage());
             e.printStackTrace();

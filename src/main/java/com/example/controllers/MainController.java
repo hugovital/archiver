@@ -78,16 +78,19 @@ public class MainController {
         try {
             // Get the window from the view
             javafx.stage.Window window = view.getScene().getWindow();
-            model.addNewContent(content, window);
-            // Clear the text area after successful addition
-            view.cleanAllFields();
+            boolean contentSaved = model.addNewContent(content, window);
             
-            // Show success dialog
-            Alert successAlert = new Alert(Alert.AlertType.INFORMATION);
-            successAlert.setTitle("Success");
-            successAlert.setHeaderText("Content Added");
-            successAlert.setContentText("The content was successfully added to the file.");
-            successAlert.showAndWait();
+            // Only show success and clean fields if content was actually saved
+            if (contentSaved) {
+                view.cleanAllFields();
+                
+                // Show success dialog
+                Alert successAlert = new Alert(Alert.AlertType.INFORMATION);
+                successAlert.setTitle("Success");
+                successAlert.setHeaderText("Content Added");
+                successAlert.setContentText("The content was successfully added to the file.");
+                successAlert.showAndWait();
+            }
             
         } catch (Exception e) {
             showAlert("Error", "Failed to add content", 
