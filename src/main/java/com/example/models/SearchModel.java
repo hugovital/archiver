@@ -3,6 +3,7 @@ package com.example.models;
 import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -25,11 +26,12 @@ public class SearchModel {
         
         try {
             InputStream is = getClass().getResourceAsStream(DATABASE_FILE);
-            BufferedReader reader = new BufferedReader(new InputStreamReader(is));
+            BufferedReader reader = new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8));
             String line;
             
             while ((line = reader.readLine()) != null) {
                 if (line.toLowerCase().contains(searchTerm.toLowerCase())) {
+
                     // Split the line by delimiter and format
                     String[] parts = line.split(DELIMITER);
                     StringBuilder formattedResult = new StringBuilder();

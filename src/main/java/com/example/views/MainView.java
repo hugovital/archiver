@@ -245,6 +245,7 @@ public class MainView {
     }
 
     private String createHtmlContent(String content) {
+
         StringBuilder html = new StringBuilder();
         html.append("<!DOCTYPE html><html><head>");
         html.append("<style>");

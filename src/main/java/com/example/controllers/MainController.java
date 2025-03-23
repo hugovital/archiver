@@ -10,6 +10,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.FileVisitResult;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
@@ -120,8 +121,7 @@ public class MainController {
 
                             // If it's a txt file, append its content
                             if (fileName.toLowerCase().endsWith(".txt")) {
-                                String content = Files.readString(filePath);
-                                result.append("\nContent:\n");
+                                String content = Files.readString(Path.of(filePath.toString()), StandardCharsets.UTF_8);                                result.append("\nContent:\n");
                                 result.append(processTextForUrls(content));
                             } else {
                                 result.append("\n(Not a text file)");
