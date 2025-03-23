@@ -76,12 +76,20 @@ public class MainController {
         }
         
         try {
-            model.backupRecordsFile(content);
+            model.addNewContent(content);
             // Clear the text area after successful backup
             view.cleanAllFields();
+            
+            // Show success dialog
+            Alert successAlert = new Alert(Alert.AlertType.INFORMATION);
+            successAlert.setTitle("Success");
+            successAlert.setHeaderText("Content Added");
+            successAlert.setContentText("The content was successfully added to the file.");
+            successAlert.showAndWait();
+            
         } catch (Exception e) {
             showAlert("Error", "Failed to add content", 
-                     "An error occurred while backing up the file: " + e.getMessage());
+                     "An error occurred while adding the content: " + e.getMessage());
         }
     }
 

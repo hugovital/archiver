@@ -131,24 +131,62 @@ public class SearchModel {
             // Create backup file path
             File backupFile = new File(backupFolder, backupFileName);
             
-            // First, create backup of existing file
+            // Create backup of existing file
             java.nio.file.Files.copy(
                 sourceFile.toPath(),
                 backupFile.toPath(),
                 java.nio.file.StandardCopyOption.REPLACE_EXISTING
             );
-
-            // Then append the new content to the original file
-            java.nio.file.Files.write(
-                sourceFile.toPath(),
-                (System.lineSeparator() + newContent).getBytes(StandardCharsets.UTF_8),
-                java.nio.file.StandardOpenOption.APPEND
-            );
             
         } catch (Exception e) {
             System.err.println("Error creating backup: " + e.getMessage());
             e.printStackTrace();
-            throw new RuntimeException("Failed to backup and update file: " + e.getMessage());
+            throw new RuntimeException("Failed to backup file: " + e.getMessage());
         }
+    }
+
+    public void addNewContent(String content) {
+        try {
+            // First create backup
+            backupRecordsFile(content);
+
+            // Format the content - split by newlines and join with semicolons
+            String formattedContent = formatContentForFile(content);
+
+            // Append the formatted content to the original file
+            File sourceFile = new File(getRecordsFilePath());
+            java.nio.file.Files.write(
+                sourceFile.toPath(),
+                (System.lineSeparator() + formattedContent).getBytes(StandardCharsets.UTF_8),
+                java.nio.file.StandardOpenOption.APPEND
+            );
+        } catch (Exception e) {
+            System.err.println("Error adding new content: " + e.getMessage());
+            e.printStackTrace();
+            throw new RuntimeException("Failed to add new content: " + e.getMessage());
+        }
+    }
+
+    private String formatContentForFile(String content) {
+        // Split content by newlines and remove empty lines
+        String[] lines = content.split("\\R");
+        StringBuilder formatted = new StringBuilder();
+        
+        for (String line : lines) {
+            String trimmed = line
+                .replace('\n', ' ')
+                .replace('\r', ' ')
+                .trim();
+            if (!trimmed.isEmpty()) {
+                // If line already contains semicolons, keep it as is
+                // Otherwise, treat the whole line as one field
+                if (!trimmed.contains(";")) {
+                    trimmed = trimmed + ";";
+                }
+                formatted.append(trimmed);
+            }
+        }
+        
+        return formatted.toString();
     }
 } 
