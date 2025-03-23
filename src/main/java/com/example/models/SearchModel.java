@@ -232,19 +232,22 @@ public class SearchModel {
     }
 
     private String saveTheContent(String content, javafx.stage.Window parentWindow) {
+
+        // Validate directory exists
+        String initialDirectory = "C:\\Users\\Hugo\\Desktop\\Banco Itaú SA";
+        File saveDir = new File(initialDirectory);
+        if (!saveDir.exists() || !saveDir.isDirectory()) {
+            throw new RuntimeException("Directory specified in INITIAL_SAVE_DIRECTORY does not exist: " + initialDirectory);
+        }
+        
         // Generate suggested filename from content
         String suggestedName = generateSuggestedFilename(content);
         
         javafx.stage.FileChooser fileChooser = new javafx.stage.FileChooser();
         fileChooser.setTitle("Save Content As");
         
-        // Set initial directory to user's Documents folder
-        String userHome = System.getProperty("user.home");
-        File documentsFolder = new File(userHome + File.separator + "Documents");
-        if (!documentsFolder.exists()) {
-            documentsFolder = new File(userHome);
-        }
-        fileChooser.setInitialDirectory(documentsFolder);
+        // Set initial directory from environment variable
+        fileChooser.setInitialDirectory(saveDir);
         
         // Set initial filename
         fileChooser.setInitialFileName(suggestedName);
