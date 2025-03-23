@@ -4,25 +4,16 @@ import com.example.models.SearchModel;
 import com.example.views.MainView;
 import javafx.scene.control.Alert;
 import java.util.List;
-import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.concurrent.TimeUnit;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.FileVisitResult;
-import java.nio.file.SimpleFileVisitor;
-import java.nio.file.attribute.BasicFileAttributes;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class MainController {
     private SearchModel model;
     private MainView view;
-    private static final int MAX_DEPTH = 4; // Maximum directory depth to search
-    private static final int MAX_FILES = 10; // Maximum number of files to find
     private static final Pattern URL_PATTERN = Pattern.compile("\\b(https?://\\S+)\\b");
 
     // Add constants for tooltips to avoid string concatenation
@@ -203,42 +194,4 @@ public class MainController {
                    .replace("\n", "<br>");
     }
 
-    private List<Path> searchFiles(String fileName) {
-        List<Path> results = new ArrayList<>();
-        AtomicInteger fileCount = new AtomicInteger(0);
-        
-        try {
-            Path searchPath = Paths.get(System.getProperty("user.dir"));
-            
-            Files.walkFileTree(searchPath, new SimpleFileVisitor<Path>() {
-                @Override
-                public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) {
-                    if (fileCount.get() >= MAX_FILES) {
-                        return FileVisitResult.TERMINATE;
-                    }
-                    
-                    if (file.getFileName().toString().toLowerCase()
-                            .contains(fileName.toLowerCase())) {
-                        results.add(file);
-                        fileCount.incrementAndGet();
-                    }
-                    return FileVisitResult.CONTINUE;
-                }
-
-                @Override
-                public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) {
-                    // Skip hidden directories and limit depth
-                    if (dir.toFile().isHidden() || 
-                        dir.getNameCount() - searchPath.getNameCount() > MAX_DEPTH) {
-                        return FileVisitResult.SKIP_SUBTREE;
-                    }
-                    return FileVisitResult.CONTINUE;
-                }
-            });
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        
-        return results;
-    }
 } 

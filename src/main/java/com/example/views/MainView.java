@@ -10,9 +10,7 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.scene.web.WebView;
 import com.example.controllers.MainController;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import javafx.scene.input.MouseButton;
 import javafx.concurrent.Worker.State;
 import netscape.javascript.JSObject;
 import java.awt.Desktop;
@@ -21,10 +19,8 @@ import java.io.File;
 import java.util.Base64;
 import java.io.InputStream;
 import java.io.ByteArrayOutputStream;
-import javafx.scene.input.KeyCode;
 import javafx.stage.FileChooser;
 import javafx.scene.layout.Region;
-import javafx.scene.layout.ScrollPane;
 
 public class MainView {
     private final MainController controller;
@@ -283,20 +279,6 @@ public class MainView {
 
         html.append("</div></body></html>");
         return html.toString();
-    }
-
-    private String escapeHtml(String text) {
-        return text.replace("&", "&amp;")
-                  .replace("<", "&lt;")
-                  .replace(">", "&gt;")
-                  .replace("\"", "&quot;")
-                  .replace("\n", "<br>");
-    }
-
-    private String escapeJavaScript(String text) {
-        return text.replace("\\", "\\\\")
-                  .replace("\"", "\\\"")
-                  .replace("'", "\\'");
     }
 
     // JavaScript interface class

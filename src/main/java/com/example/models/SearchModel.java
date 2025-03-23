@@ -21,6 +21,32 @@ public class SearchModel {
         return searchTerm;
     }
 
+    public boolean containsSearchTerm(String line){
+
+        var words = searchTerm.toLowerCase().split(" ");
+
+        var searchWords = new ArrayList<String>();
+        var foundWords = new ArrayList<String>();
+
+        for(var word : words){
+            if ( word.trim().equals(""))
+                continue;
+            searchWords.add(word.toLowerCase());
+        }
+
+        for(var word : searchWords){
+            if(line.toLowerCase().contains(word)){
+                foundWords.add(word);
+            }
+        }
+
+        if(foundWords.size() == searchWords.size()){
+            return true;
+        }
+
+        return false;
+    }
+
     public List<String> searchRecords() {
         List<String> results = new ArrayList<>();
         
@@ -30,7 +56,8 @@ public class SearchModel {
             String line;
             
             while ((line = reader.readLine()) != null) {
-                if (line.toLowerCase().contains(searchTerm.toLowerCase())) {
+
+                if (containsSearchTerm(line)){
 
                     // Split the line by delimiter and format
                     String[] parts = line.split(DELIMITER);
