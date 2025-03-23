@@ -69,9 +69,20 @@ public class MainController {
         alert.showAndWait();
     }
 
-    public void handleAdd() {
-        // Implement add functionality
-        System.out.println("Add button clicked");
+    public void handleAdd(String content) {
+        if (content == null || content.isEmpty()) {
+            showAlert("Error", "No content to add", "Please enter some content in the text area.");
+            return;
+        }
+        
+        try {
+            model.backupRecordsFile(content);
+            // Clear the text area after successful backup
+            view.cleanAllFields();
+        } catch (Exception e) {
+            showAlert("Error", "Failed to add content", 
+                     "An error occurred while backing up the file: " + e.getMessage());
+        }
     }
 
     public void handleClean() {

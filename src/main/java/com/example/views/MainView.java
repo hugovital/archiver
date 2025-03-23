@@ -178,7 +178,12 @@ public class MainView {
         // Event handlers
         searchButton.setOnAction(e -> controller.handleSearch());
         cleanButton.setOnAction(e -> controller.handleClean());
-        addButton.setOnAction(e -> controller.handleAdd());
+        addButton.setOnAction(e -> {
+            String content = lowerTextArea.getText().trim();
+            if (!content.isEmpty()) {
+                controller.handleAdd(content);
+            }
+        });
         loadFileButton.setOnAction(e -> {
             FileChooser fileChooser = new FileChooser();
             fileChooser.setTitle("Select File");

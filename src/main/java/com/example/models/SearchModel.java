@@ -99,7 +99,7 @@ public class SearchModel {
         return filePath;
     }
 
-    public void backupRecordsFile() {
+    public void backupRecordsFile(String newContent) {
         try {
             // Get the source file
             File sourceFile = new File(getRecordsFilePath());
@@ -119,7 +119,8 @@ public class SearchModel {
                 now.getHour(),
                 now.getMinute(),
                 now.getSecond(),
-                now.getNano() / 1_000_000 // Convert nanos to millis
+                now.getNano() / 1_000_000, // Convert nanos to millis
+                now.getNano() / 1_000_000  // Add this as the actual argument for %03d
             );
             
             // Create backup filename
@@ -130,16 +131,24 @@ public class SearchModel {
             // Create backup file path
             File backupFile = new File(backupFolder, backupFileName);
             
-            // Copy the file using Java NIO for better performance
+            // First, create backup of existing file
             java.nio.file.Files.copy(
                 sourceFile.toPath(),
                 backupFile.toPath(),
                 java.nio.file.StandardCopyOption.REPLACE_EXISTING
             );
+
+            // Then append the new content to the original file
+            java.nio.file.Files.write(
+                sourceFile.toPath(),
+                (System.lineSeparator() + newContent).getBytes(StandardCharsets.UTF_8),
+                java.nio.file.StandardOpenOption.APPEND
+            );
             
         } catch (Exception e) {
             System.err.println("Error creating backup: " + e.getMessage());
             e.printStackTrace();
+            throw new RuntimeException("Failed to backup and update file: " + e.getMessage());
         }
     }
 } 
