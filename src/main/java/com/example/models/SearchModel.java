@@ -1,7 +1,8 @@
 package com.example.models;
 
 import java.io.BufferedReader;
-import java.io.InputStream;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -10,8 +11,13 @@ import java.util.List;
 public class SearchModel {
     // Add model properties and methods here
     private String searchTerm;
-    private static final String DATABASE_FILE = "/database/records.csv";
     private static final String DELIMITER = ";"; // Changed from comma to semicolon
+
+    // Add constructor to validate environment variable on initialization
+    public SearchModel() {
+        // Validate environment variable exists during initialization
+        getRecordsFilePath();
+    }
 
     public void setSearchTerm(String searchTerm) {
         this.searchTerm = searchTerm;
@@ -51,14 +57,15 @@ public class SearchModel {
         List<String> results = new ArrayList<>();
         
         try {
-            InputStream is = getClass().getResourceAsStream(DATABASE_FILE);
-            BufferedReader reader = new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8));
+            // Use File instead of ResourceStream since we're reading from filesystem path
+            File file = new File(getRecordsFilePath());
+            BufferedReader reader = new BufferedReader(
+                new InputStreamReader(new FileInputStream(file), StandardCharsets.UTF_8)
+            );
             String line;
             
             while ((line = reader.readLine()) != null) {
-
                 if (containsSearchTerm(line)){
-
                     // Split the line by delimiter and format
                     String[] parts = line.split(DELIMITER);
                     StringBuilder formattedResult = new StringBuilder();
@@ -80,5 +87,15 @@ public class SearchModel {
         }
         
         return results;
+    }
+
+    private String getRecordsFilePath() {
+        String filePath = System.getenv("RECORDS_FILEPATH");
+        if (filePath == null || filePath.trim().isEmpty()) {
+            System.err.println("Error: RECORDS_FILEPATH environment variable is not set");
+            System.exit(1);
+            return null; // This line will never be reached due to System.exit(1)
+        }
+        return filePath;
     }
 } 

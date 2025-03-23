@@ -36,8 +36,6 @@ public class MainView {
     private static final String NORMAL_STYLE = "-fx-padding: 5; -fx-background-color: #f0f0f0; -fx-background-radius: 5;";
     private static final String SELECTED_STYLE = "-fx-padding: 5; -fx-background-color: #0096ff; -fx-background-radius: 5; -fx-text-fill: white;";
     private WebView foundItemsView;
-    private static final Pattern URL_PATTERN = Pattern.compile(
-        "\\b(https?://[-a-zA-Z0-9+&@#/%?=~_|!:,.;]*[-a-zA-Z0-9+&@#/%=~_|])");
     
     // Default base64 encoded small folder icon (16x16 pixels)
     private static final String DEFAULT_FOLDER_ICON = "iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABHNCSVQICAgIfAhkiAAAAAlwSFlzAAAAbwAAAG8B8aLcQwAAABl0RVh0U29mdHdhcmUAd3d3Lmlua3NjYXBlLm9yZ5vuPBoAAAB5SURBVDiNY2AYBYMPMBKrMCsr638GBgYGXl5eZiIMwKqZiYGBgaG5uZmBl5eXCZciFxcXBlwuYMKjGQYYcRqAR/N/UVFR7AYQoxkGWPBpxqUZwwBiNcMAM7KzSdWMYgCxmmEAb0Ai0TB4AKYBpGhGMYAUzSBQUVExAAYYc+4EGH/GAAAAAElFTkSuQmCC";
