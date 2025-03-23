@@ -94,8 +94,52 @@ public class SearchModel {
         if (filePath == null || filePath.trim().isEmpty()) {
             System.err.println("Error: RECORDS_FILEPATH environment variable is not set");
             System.exit(1);
-            return null; // This line will never be reached due to System.exit(1)
+            return null;
         }
         return filePath;
+    }
+
+    public void backupRecordsFile() {
+        try {
+            // Get the source file
+            File sourceFile = new File(getRecordsFilePath());
+            
+            // Create backup folder if it doesn't exist
+            File backupFolder = new File(sourceFile.getParent(), "backup");
+            if (!backupFolder.exists()) {
+                if (!backupFolder.mkdir()) {
+                    throw new RuntimeException("Failed to create backup directory");
+                }
+            }
+            
+            // Get current timestamp for filename
+            java.time.LocalDateTime now = java.time.LocalDateTime.now();
+            String timestamp = String.format("%d_%02d_%02d_%02d_%02d_%03d",
+                now.getDayOfMonth(),
+                now.getHour(),
+                now.getMinute(),
+                now.getSecond(),
+                now.getNano() / 1_000_000 // Convert nanos to millis
+            );
+            
+            // Create backup filename
+            String originalFileName = sourceFile.getName();
+            String fileNameWithoutExt = originalFileName.substring(0, originalFileName.lastIndexOf('.'));
+            String backupFileName = String.format("%s_backup_%s.back", fileNameWithoutExt, timestamp);
+            
+            // Create backup file path
+            File backupFile = new File(backupFolder, backupFileName);
+            
+            // Copy the file using Java NIO for better performance
+            java.nio.file.Files.copy(
+                sourceFile.toPath(),
+                backupFile.toPath(),
+                java.nio.file.StandardCopyOption.REPLACE_EXISTING
+            );
+            
+        } catch (Exception e) {
+            System.err.println("Error creating backup: " + e.getMessage());
+            e.printStackTrace();
+        }
     }
 } 
