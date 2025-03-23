@@ -232,6 +232,9 @@ public class SearchModel {
     }
 
     private String saveTheContent(String content, javafx.stage.Window parentWindow) {
+        // Generate suggested filename from content
+        String suggestedName = generateSuggestedFilename(content);
+        
         javafx.stage.FileChooser fileChooser = new javafx.stage.FileChooser();
         fileChooser.setTitle("Save Content As");
         
@@ -242,6 +245,9 @@ public class SearchModel {
             documentsFolder = new File(userHome);
         }
         fileChooser.setInitialDirectory(documentsFolder);
+        
+        // Set initial filename
+        fileChooser.setInitialFileName(suggestedName);
         
         // Set file extension filter
         javafx.stage.FileChooser.ExtensionFilter extFilter = 
@@ -277,6 +283,61 @@ public class SearchModel {
         }
         
         return null;
+    }
+
+    private String generateSuggestedFilename(String content) {
+        java.util.Set<String> uniqueWords = new java.util.LinkedHashSet<>(); // LinkedHashSet to maintain order
+        String[] lines = content.split("\\R");
+        
+        for (String line : lines) {
+            String trimmedLine = line.trim();
+            // Skip if line is a file path
+            if (new File(trimmedLine).exists()) {
+                continue;
+            }
+            
+            // Split line into words and add to set
+            String[] words = trimmedLine.split("\\s+");
+            for (String word : words) {
+                // Clean the word and add if valid
+                String cleanWord = word.replaceAll("[^a-zA-Z0-9]", "").toLowerCase();
+                if (!cleanWord.isEmpty()) {
+                    uniqueWords.add(cleanWord);
+                    // Break if we have 10 words
+                    if (uniqueWords.size() >= 10) {
+                        break;
+                    }
+                }
+            }
+            // Break if we have 10 words
+            if (uniqueWords.size() >= 10) {
+                break;
+            }
+        }
+        
+        // Join words with underscore
+        StringBuilder filename = new StringBuilder();
+        int count = 0;
+        for (String word : uniqueWords) {
+            if (count > 0) {
+                filename.append("_");
+            }
+            filename.append(word);
+            count++;
+            if (count >= 10) {
+                break;
+            }
+        }
+        
+        // If no words were found, use a default name
+        if (filename.length() == 0) {
+            filename.append("new_content");
+        }
+        
+        // Add extension
+        filename.append(".txt");
+        
+        return filename.toString();
     }
 
     private String formatContentForFile(String content) {
